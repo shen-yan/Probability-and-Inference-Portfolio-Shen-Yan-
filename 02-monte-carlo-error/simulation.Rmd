@@ -1,0 +1,136 @@
+---
+title: "simulation"
+output: html_notebook
+---
+
+```{r}
+require(magrittr)
+rbinom(1,1,18/38)
+```
+
+```{r}
+R<- 500 #Replicates
+p<- .5 # prob of interest
+p_hat <- rbinom(1, R, p)/R
+```
+
+```{r}
+abs_error <- rel_error <- rep(NA,10000)
+
+for(i in seq_along(abs_error)){
+  p_hat <- rbinom(1, R, p)/R
+  abs_error[i] <- abs(p-p_hat)
+  rel_error[i] <- abs_error[i]/p
+}
+hist(abs_error)
+hist(abs_error, breaks = 100)
+abline(v = mean(abs_error))
+abline(v = mean(abs_error), lwd = 3, col="blue")
+```
+
+
+## Simulate the absolute error
+```{r, cache = TRUE}
+p_vector <- c(0.01, 0.05, 0.10, 0.25, 0.50)
+R_exponential <- 2:15
+
+abs_error <- rep(NA,10000)
+p_abs_error <- rep(NA, 14)
+
+abs_error_df <- data.frame("Exponential" = R_exponential, "N" = 2^R_exponential)
+
+for(i in 1:5){
+  p = p_vector[i]
+  for(j in 1:14){
+    R = 2^R_exponential[j]
+    for(k in seq_along(abs_error)){
+      p_hat <- rbinom(1, R, p)/R
+      abs_error[k] <- abs(p - p_hat)
+    }
+    p_abs_error[j] = mean(abs_error)
+  }
+  
+  abs_error_df <- cbind(abs_error_df, p = p_abs_error)
+}
+colnames(abs_error_df) <- c("exp", "N", "p1", "p2", "p3", "p4", "p5")
+```
+## Plot absolute error
+```{r, cache=TRUE}
+library(ggplot2)
+ggplot(abs_error_df, aes(x = log2(N)))+
+  geom_line(aes(y = p1), colour = "red")+
+  geom_line(aes(y = p2), colour = "blue")+
+  geom_line(aes(y = p3), colour = "green")+
+  geom_line(aes(y = p4), colour = "purple")+
+  geom_line(aes(y = p5), colour = "orange")+
+  
+  geom_point(aes(y = p1), colour = "red")+
+  geom_point(aes(y = p2), colour = "blue")+
+  geom_point(aes(y = p3), colour = "green")+
+  geom_point(aes(y = p4), colour = "purple")+
+  geom_point(aes(y = p5), colour = "orange")+
+  
+  theme_classic()+
+  
+  xlab("N (log2 scale)") +
+  ylab("Absolute Error")
+```
+```{r}
+ggsave("absolute error.jpg", width = 10, height = 5)
+```
+
+
+## Simulate the relative error
+```{r, cache = TRUE}
+p_vector <- c(0.01, 0.05, 0.10, 0.25, 0.50)
+R_exponential <- 2:15
+
+rel_error <- rep(NA,10000)
+p_rel_error <- rep(NA, 14)
+
+rel_error_df <- data.frame("Exponential" = R_exponential, "N" = 2^R_exponential)
+
+for(i in 1:5){
+  p = p_vector[i]
+  for(j in 1:14){
+    R = 2^R_exponential[j]
+    for(k in seq_along(rel_error)){
+      p_hat <- rbinom(1, R, p)/R
+      rel_error[k] <- abs(p - p_hat)/p
+    }
+    p_rel_error[j] <- mean(rel_error)
+  }
+  rel_error_df <- cbind(rel_error_df, p = p_rel_error)
+}
+colnames(rel_error_df) <- c("exp", "N", "p1", "p2", "p3", "p4", "p5")
+```
+
+## Plot Relative Error
+```{r, cache = TRUE}
+ggplot(rel_error_df, aes(x = log2(N)))+
+  geom_line(aes(y = p1), colour = "red")+
+  geom_line(aes(y = p2), colour = "blue")+
+  geom_line(aes(y = p3), colour = "green")+
+  geom_line(aes(y = p4), colour = "purple")+
+  geom_line(aes(y = p5), colour = "orange")+
+  
+  geom_point(aes(y = p1), colour = "red")+
+  geom_point(aes(y = p2), colour = "blue")+
+  geom_point(aes(y = p3), colour = "green")+
+  geom_point(aes(y = p4), colour = "purple")+
+  geom_point(aes(y = p5), colour = "orange")+
+  
+  scale_fill_discrete(name = "Y series", labels = c("p1", "p2", "p3", "p4", "p5"))+
+  theme(legend.position = "right")+
+  
+  theme_classic()+
+  
+  xlab("N (log2 scale)") +
+  ylab("Relative Error")
+```
+
+```{r}
+ggsave("relative error.jpg", width = 10, height = 5)
+```
+
+

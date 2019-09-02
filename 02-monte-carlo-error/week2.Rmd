@@ -1,0 +1,44 @@
+---
+title: "week2"
+output: html_notebook
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{r}
+require(magrittr)
+rbinom(1,1,18/38)
+# number of draw, size of the draw, 
+rbinom(1,10,18/38)
+# number of draws that are red
+rbinom(10,1,18/38) %>% sum
+```
+
+```{r}
+R<- 500 #Replicates
+p<- .3 # prob of interest
+p_hat <- rbinom(1, R, p)/R
+```
+
+```{r}
+abs_error <- abs(p-p_hat)
+rel_error <- abs_error/p
+```
+
+
+abs_error <- rel_error <- rep(NA,10000)
+for(i in seq_along(abs_error)){
+  p_hat <- rbinom(1, R, p)/R
+  abs_error[i] <- abs(p-p_hat)
+  rel_error[i] <- abs_error[i]/p
+}
+hist(abs_error)
+hist(abs_error, breaks = 100)
+abline(v = mean(abs_error))
+abline(v = mean(abs_error), lwd = 3, col="blue")
+
+# another way to do it
+p_hat <-rbinom(100000, R, p)/R
+abs_error <- abs(p - p_hat)
+rel_error <- abs_error/p
+head(abs_error)
