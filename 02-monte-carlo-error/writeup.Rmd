@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ---
 title: "Simulation Error"
 output:
@@ -56,4 +57,3 @@ Rina recieved a note from her sister, explaining how to read the graph:
   Though Rina now understands that the bigger the sample size, the better the estimation will be, she still doesn't know the exact number of students she should include in her sample. Also, she has very limiting power in collecting the data.
 
   Another concern is that all the simulations are based on the assumption that her sampling is not biased, which could be hard to achieve in reality. No matter what  method she chooses, it's likely bias would be introduced. For example, if she did the sampling in her class,  the class population would not be a good representation of the whole population. So Rina might need some extra work to select her sample and make sure to the data she gets would be as representative as possible.
-</font> 
