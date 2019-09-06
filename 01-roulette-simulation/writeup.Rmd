@@ -1,23 +1,25 @@
 ---
 title: "Simulation of Martingale Strategy on Roulette"
 output:
-  pdf_document: default
   html_notebook: default
-editor_options:
-  chunk_output_type: inline
 ---
 
 # 1. Introduction to Roulette Game
 
 ## 1.1 Roulette Rules
-![](writeup.nb.svg)
+
+![](roulette-table.png)
+
 
   A roulette table composed of 38 (or 37) evenly sized pockets on a wheel. The pockets are colored red, black, or green. Roulette is a game of chance in which a pocket is randomly selected. Gamblers may wager on several aspects of the outcome. For example, one may place a wager that the randomly selected pocket will be red or odd numbered or will be a specific number.
 
   For this blog post, we only consider betting on colors. On the roulette, there are 38 pockets of which 2 are green, 18 are red, and 18 are black. The payout for a bet on black (or red) is $1 for each $1 wagered. This means that if a gambler bets $1 on black and the randomly selected pocket is black, then the gambler will get the original $1 wager and an additional $1 as winnings.
 
+
+
 ## 1.2 The "Martingale" Strategy
-![](martingale-strategy.svg)
+
+![](martingale-strategy.png)
 
 # 2. Simulation
 
@@ -182,6 +184,7 @@ mean(walk_out_money - 200)
   plot (time_of_play[0:5], earning[1:5], type = "o", main = "How the Earning/Loss of a Single Player Evolve over Time", xlab = "Number of Play", ylab = "Earning")
   lines(time_of_play[0:5], earning[1:5], type = "o")
 ```
+
 Play|Wager|Outcome|Earnings
 ----|-----|-------|--------
   1 |  1  | Black |  -1
@@ -225,7 +228,7 @@ one_simulation <- function(
   return(mean(walk_out_money - 200))
 }
 ```
-  Then, we want to take a look at the way earnings change when parameter B, the starting budget, increases from $100 to $1,000.
+  Then, we want to take a look at the way earnings change when parameter B, the starting budget, increases from $100 to $1,500.
 ```{r,cache=TRUE}
 # The variation time of one variable
 time_of_variation = 15
@@ -264,7 +267,7 @@ for(j in seq_along(walk_out_money)){
 
 mean(number_of_plays)
 ```
-  In average, a player would play 204 times before one of the stopping conditions are satisfied and thus ends the game. The distribution is as follows:
+  In average, a player would play 200 times before one of the stopping conditions are satisfied and thus ends the game. The distribution is as follows:
 ```{r,cache=TRUE}
 # Number of plays distribution
 hist(number_of_plays, breaks = 100)
