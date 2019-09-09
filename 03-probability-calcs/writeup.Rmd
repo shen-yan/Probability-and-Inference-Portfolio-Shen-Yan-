@@ -1,17 +1,23 @@
 ---
 title: "How often does the better team win the World Series?"
-output: html_document
-font: Calibri
-
+author: "Yan Shen"
+date: 09/08/2019
+output: 
+  html_document:
+    code_folding: hide
+    theme: journal
+    toc: yes
+    toc_depth: 5
+    toc_float: true
+editor_options: 
+  chunk_output_type: inline
 ---
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
 
 ***
 # Setup
-![](Braves_vs_Yankees.jpg)
+<center>
+![](Braves_vs_Yankees.jpg){width=750px}
+</center>
 
   The World Series is the annual championship series of Major League Baseball (MLB) in North America. The winner is determined through __a best-of-seven playoff__, where one team must win four games to win the series. If a series is won before all seven games have been played, all remaining games are omitted. It is not necessary for the four games to be won consecutively. Draws are not permitted, so a series will never require more than seven games.
 
@@ -25,7 +31,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ***
 # Can Braves win the series ...
 
-### When $P_b$ = 0.55?
+## When $P_b$ = 0.55?
 Let's assume $P_b$ = 0.55, and calculate probability that the Braves win the World Series.
 
 ```{r}
@@ -37,7 +43,7 @@ Let's assume $P_b$ = 0.55, and calculate probability that the Braves win the Wor
 = $1 - 0.3917$
 = $60.82$%
 
-#### What if $P_b$ changes?
+### What if $P_b$ changes?
 ```{r}
 P_b <- seq(0.5, 1, by = 0.05)
 P_Bwins_x <- rep(NA, 11)
@@ -51,8 +57,8 @@ library(ggplot2)
 
 df_Bwin = data.frame(cbind(P_b, P_Bwins_x))
 ggplot(df_Bwin, aes(x = P_b, y = P_Bwins_x)) + 
-  geom_point()+
-  geom_line() +
+  geom_point(col = "#003399")+
+  geom_line(col = "#003399") +
   scale_x_continuous(breaks = P_b) +
   theme_classic()+
   labs(x = "Probability that the Braves win a single game", y = "Probability that Braves win the World Series", title = "Probability that Braves win the World Series")
@@ -60,7 +66,7 @@ ggplot(df_Bwin, aes(x = P_b, y = P_Bwins_x)) +
 
 As $P_b$ becomes larger, the probability that Braves will ultimately win the World Series becomes closer and closer to 1, which makes sense as the probability of winning 4 games increases with the probability of winning a single game. When $P_b$ is larger than 0.9, it's almost for sure that Braves would win the series!
 
-### When it's not best-of-7?
+## When it's not best-of-7?
 
 What if MLB wants to change the winning rule to best-of-x? For example, if it's best-of-9, then Braves would have to win 5 games.
 
@@ -85,7 +91,7 @@ To do this, we first assume there's only 1 game in the series, and check to see 
 
 The result is __71__. A quite large number! It's ten times the current series length!
 
-#### What if $P_b$ changes?
+### What if $P_b$ changes?
 ```{r}
 P_b <- seq(0.55, 1, by = 0.05)
 shortest <- rep(NA, 10)
@@ -98,8 +104,8 @@ shortest
 ```{r}
 df_shortest = data.frame(cbind(P_b, shortest))
 ggplot(df_shortest, aes(x = P_b, y = shortest)) + 
-  geom_point()+
-  geom_line()+
+  geom_point(col = "#003399")+
+  geom_line(col = "#003399")+
   scale_x_continuous(breaks = P_b) +
   theme_classic()+
   labs(x = "Probability of the Braves winning a head-to-head matchup", y = "Series length", title = "Shortest series so that the probability Braves wins WS ≥ 0.8")
@@ -118,7 +124,9 @@ What's the probability that $P_b$ = 0.55 given Braves wins World Series in exact
 
 First, we want to know the probability of Braves winning World Series in exactly 7 games with probability $p$. We use __negative binomial random variable__.
 
-> $P$(Braves wins 3 out of the first 6 games) * $p$ (winning the last game) = $6 \choose 3$*$p^3$*$(1-p)^3$*$p$
+> $P$(Braves wins 3 out of the first 6 games) * $p$ (winning the last game) 
+>
+> = $6 \choose 3$*$p^3$*$(1-p)^3$*$p$
 
 Then we use __Bayes' Rule__:
 
