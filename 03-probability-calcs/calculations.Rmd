@@ -1,0 +1,114 @@
+---
+title: "calculations"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Q1: What is the probability that the Braves win the World Series given that $P_b$ = 0.55?
+
+P(Braves wins the World Series | $P_b$ = 0.55)
+= P(Braves wins exactly 4 or 5 or 6 or 7 games)
+= P(Braves wins exactly 4 games) + P(Braves wins exactly 5 games) + P(Braves wins exactly 6 games) + P(Braves wins exactly 7 games)
+= $7 \choose 4$*$P_b^4$*$(1-P_b)^3$ + $7 \choose 5$*$P_b^5$*$(1-P_b)^2$ + $7 \choose 6$*$P_b^6$*$(1-P_b)^1$+ $7 \choose 7$*$P_b^7$*$(1-P_b)^0$
+```{r}
+p = 0.55
+P_Bwins <- 0
+for(i in 4:7){
+  temp_p <- dbinom(i, 7, p)
+  P_Bwins <- P_Bwins + temp_p
+}
+P_Bwins
+```
+
+or
+```{r}
+1 - pbinom(3,7,0.55)
+```
+0.6082878
+
+2.What is the probability that the Braves win the World Series given that $P_b$ = $x$? This will be a figure (see below) with $P_b$ on the x-axis and P(Braves win World Series) on the y-axis.
+```{r}
+P_b <- seq(0.5, 1, by = 0.05)
+P_Bwins_x <- rep(NA, 11)
+for(i in 1:11){
+  P_Bwins_x[i] <- 1 - pbinom(3, 7, P_b[i])
+}
+```
+
+```{r}
+library(ggplot2)
+
+df_Bwin = data.frame(cbind(P_b, P_Bwins_x))
+ggplot(df_Bwin, aes(x = P_b, y = P_Bwins_x)) + 
+  geom_point()+
+  geom_line() +
+  scale_x_continuous(breaks = P_b) +
+  theme_classic()+
+  labs(x = "p (Probability of the Braves winning a head-to-head matchup)", y = "Probability of Braves winning the World Series", title = "Probability of Braves winning the World Series")
+ggsave("prob2.jpg", width = 10, height = 5)
+```
+
+3. Suppose one could change the World Series to be best-of-9 or some other best-of-X series. What is the shortest series length so that P(Braves win World Series|$P_b$ = 0.55) ≥ 0.8
+```{r}
+series_length <- seq(1, 100000, by = 2)
+
+shortest_series_length <- function(p){
+  for(x in series_length){
+    p_wins <- 1 - pbinom(floor(x/2), x, p)
+    if(p_wins >= 0.8){
+      return(x)
+    }
+  }
+  print("larger series length needed")
+}
+shortest_series_length(0.55)
+```
+The shortest series length is 71.
+
+4. What is the shortest series length so that P(Braves win World Series|$P_b$ = $x$) ≥ 0.8? This will be a figure (see below) with $P_b$ on the x-axis and series length is the y-axis.
+```{r}
+P_b <- seq(0.55, 1, by = 0.05)
+shortest <- rep(NA, 10)
+for(i in 1:10){
+  shortest[i] <- shortest_series_length(P_b[i])
+}
+```
+
+```{r}
+df_shortest = data.frame(cbind(P_b, shortest))
+ggplot(df_shortest, aes(x = P_b, y = shortest)) + 
+  geom_point()+
+  geom_line()+
+  scale_x_continuous(breaks = P_b) +
+  theme_classic()+
+  labs(x = "p (Probability of the Braves winning a head-to-head matchup)", y = "Series length", title = "Shortest series so that the probability Braves wins WS ≥ 0.8")
+ggsave("prob4.jpg", width = 10, height = 5)
+```
+
+5. Calculate P($P_b$ = 0.55|Braves win World Series in 7 games) under the assumption that either $P_b$ = 0.55 or $P_b$ = 0.45. Explain your solution.
+```{r}
+# p: p(B wins a single game)
+neg_binom <- function(p){
+  dbinom(3,6,p)*p
+}
+
+#Calculate P(A|B) by bayes rules
+#Assume A can be seperated into event a1 and a2
+#prameter
+#a1: p(B|a1), a2: p(B|a2), p: p(a1) 
+
+bayes <- function(a1, a2, p){
+  (a1*p)/(a1*p+a2*(1-p))
+}
+```
+
+```{r}
+p_a1 <- neg_binom(0.55)
+p_a2 <- neg_binom(0.45)
+
+bayes(p_a1, p_a2, 0.5)
+```
+P($P_b$ = 0.55|Braves win World Series in 7 games) = 0.55
