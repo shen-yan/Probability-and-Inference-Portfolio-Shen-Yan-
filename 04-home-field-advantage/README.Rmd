@@ -1,1 +1,3 @@
-[Link to writeup](\writeup.Rmd)
+[Link to writeup](writeup.html)
+[Link to original calculation](Calculation.Rmd)
+[Link to post on Error Analysis](~/Git-Projects/Probability-and-Inference-Portfolio-Shen-Yan-/02-monte-carlo-error/writeup.htnl)

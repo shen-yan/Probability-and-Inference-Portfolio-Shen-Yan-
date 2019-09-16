@@ -1,0 +1,154 @@
+---
+title: "Calculation"
+output: html_document
+---
+
+Questions to answer:
+
+##1. 
+Compute analytically the probability that the Braves win the world series when the sequence of game locations is {NYC, NYC, ATL, ATL, ATL, NYC, NYC}. (The code below computes the probability for the alternative sequence of game locations. Note: The code uses data.table syntax, which may be new to you. This is intential, as a gentle way to introduce data.table.) Calculate the probability with and without home field advantage when PB = 0.55. What is the difference in probabilities?
+
+###With home field advantage
+```{r}
+require(dplyr)
+require(data.table)
+# Get all possible outcomes
+apo <- fread("deliverables/assets/all-possible-world-series-outcomes.csv")
+
+# Home field indicator
+#hfi <- c(1,1,0,0,0,1,1) #{ATL, ATL, NYC, NYC, NYC, ATL, ATL}
+hfi <- c(0,0,1,1,1,0,0)
+
+# P_B
+pb <- 0.55
+advantage_multiplier <- 1.1 # Set = 1 for no advantage
+pbh <- 0.55*advantage_multiplier
+pba <- 1 - (1 - 0.55)*advantage_multiplier
+```
+
+```{r, cache = TRUE}
+# Calculate the probability of each possible outcome
+apo[, p := NA_real_] # Initialize new column in apo to store prob
+for(i in 1:nrow(apo)){
+  prob_game <- rep(1, 7)
+  for(j in 1:7){
+    p_win <- ifelse(hfi[j], pbh, pba)
+    prob_game[j] <- case_when(
+        apo[i,j,with=FALSE] == "W" ~ p_win
+      , apo[i,j,with=FALSE] == "L" ~ 1 - p_win
+      , TRUE ~ 1
+    )
+  }
+  apo[i, p := prod(prob_game)] # Data.table syntax
+}
+
+# Sanity check: does sum(p) == 1?
+apo[, sum(p)] # This is data.table notation
+
+# Probability of overall World Series outcomes
+apo[, sum(p), overall_outcome]
+```
+With home field advantage:
+P(win WS) = 0.604
+p(lose) = 0.396
+
+This is problematic!!
+```{r}
+p_lose <- 0
+for(k in 0:3){
+  p_lose <- p_lose + pbinom(4-k, 4, pba) * dbinom(k, 3, pbh)
+  print(p_lose)
+}
+```
+
+### Without home field advantage
+```{r}
+# Calculate the probability of each possible outcome
+apo[, p := NA_real_] # Initialize new column in apo to store prob
+for(i in 1:nrow(apo)){
+  prob_game <- rep(1, 7)
+  for(j in 1:7){
+    p_win <- ifelse(hfi[j], pb, pb)
+    prob_game[j] <- case_when(
+        apo[i,j,with=FALSE] == "W" ~ p_win
+      , apo[i,j,with=FALSE] == "L" ~ 1 - p_win
+      , TRUE ~ 1
+    )
+  }
+  apo[i, p := prod(prob_game)] # Data.table syntax
+}
+
+# Sanity check: does sum(p) == 1?
+apo[, sum(p)] # This is data.table notation
+
+# Probability of overall World Series outcomes
+apo[, sum(p), overall_outcome]
+```
+Without home field advantage, P(win WS) = 0.608
+
+### Difference
+```{r}
+diff_theory <- abs(0.604221 - 0.6082878)
+```
+
+
+## 2. Calculate the same probabilities as the previous question by simulation.
+
+### Without home advantage
+```{r, cache =  TRUE}
+N <- 10000          # number of repetition in the simulation
+outcome <- rbinom(N, 7, pb)
+p_win_no_advantage <- mean(outcome >= 4)
+```
+P(win WS | no home field advantage) = 0.6072
+
+
+### With home advantage
+```{r, cache = TRUE}
+hfi <- c(0,0,1,1,1,0,0)
+p_win <- rep(NA, 7)
+for(j in 1:7){
+    p_win[j] <- ifelse(hfi[j], pbh, pba)
+}
+```
+
+```{r, cache= TRUE}
+N<-100000
+win_WS <- rep(NA, N)
+
+for(k in seq(win_WS)){
+  sum_one_series <- 0
+  for (i in 1:7){
+    sum_one_series <- sum_one_series + rbinom(1,1, p_win[i])
+    #print(sum_one_game)
+    if(sum_one_series >= 4){
+      win_WS[k] = 1
+    }
+    else{
+      win_WS[k] = 0
+    }
+  }
+}
+p_win_with_advantage <- mean(win_WS)
+```
+P(win WS | home field advantage) = 0.606
+
+### Difference
+```{r}
+diff_simulation <- abs(p_win_with_advantage - p_win_no_advantage)
+```
+
+## Problem 3
+3. What is the absolute and relative error for your simulation in the previous question?
+
+```{r}
+abs_error <- abs(diff_theory - diff_simulation)
+rel_error <- abs_error/diff_theory
+```
+
+
+4. Bonus. Does the difference in probabilites (with vs without home field advantage) depend on PB?
+
+
+
+5. Bonus. Does the difference in probabilites (with vs without home field advantage) depend on the advantage factor? (The advantage factor in PBH and PBA is the 1.1 multiplier that results in a 10% increase for the home team.)

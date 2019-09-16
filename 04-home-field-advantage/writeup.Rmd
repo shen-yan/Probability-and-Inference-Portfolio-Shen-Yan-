@@ -1,0 +1,248 @@
+---
+title: "How does home field advantage impact chance of winning?"
+author: "Yan Shen"
+date: 09/15/2019
+output: 
+  html_document:
+    code_folding: hide
+    theme: journal
+    toc: yes
+    toc_depth: 5
+    toc_float: true
+editor_options: 
+  chunk_output_type: inline
+---
+
+***
+# I. Introduction
+  In team sports, the term __home advantage__ is the edge that a team may have when playing at its home stadium. This benefit can be attributed to the psychological effects the supporting fans have on the competitors or the referees or the disadvantages the away team have of unfamiliar weather or time zone. In baseball, in particular, the difference may also be the result of the home team having been assembled to take advantage of the idiosyncrasies of the home ballpark, such as the distances to the outfield walls; most other sports are played in standardized venues.
+
+  For example, when having the head-to-head match-up in Atlanta, Braves has the home advantage over the Yankees. Vice versa, Yankees would have the advantage while playing in New York.
+  
+  The World Series is __a best-of-seven playoff__, or __first-to-4-wins__ match-up, so there's great chance that home advantage will affect the championship. In this blog post, we want to know if the impact of home advantage does exist, both through analytic approach and simulation. 
+
+***
+# II. Setup
+* Suppose that the __Braves__ and __Yankees__ are teams competing in the World Series.
+* Suppose the __schedule__ for each game in the World Series is as follows:
+    +  NYC = New York City, ATL = Atlanta
+    +  Overall advantage | Game 1 | Game 2 | Game 3 | Game 4 | Game 5 | Game 6 | Game 7 |
+   ------------------|--------|--------|--------|--------|--------|--------|--------|
+   Braves            |  NYC  |  NYC  |  ATL  |  ATL  |  ATL  |  NYC  |  NYC  |
+   Yankees           |  ATL  |  ATL  |  NYC  |  NYC  |  NYC  |  ATL  |  ATL  |
+   
+* __Symbols__
+    + Let $P_B$ be the probability that the Braves win a single head-to-head match-up with the Yankees, under the assumption that _home field advantage doesn’t exist_.
+    + Let $P_B^H$ denote the probability that the Braves win a single head-to-head match-up with the Yankees _as the home team_ (H for home). 
+    + Let $P_B^A$ denote the probability that the Braves win a single head-to-head match-up _as the away team_ (A for away).
+    + Game location | No advantage | With Advantage|
+      --------------|--------------|---------------|
+           ATL      |    $P_B$     |    $P_B^H$ = $P_B*1.1$   |
+           NYC      |    $P_B$     |    $P_B^A$ = 1 - (1 - $P_B)*1.1$   |
+
+```{r}
+# Home field indicator
+hfi <- c(0,0,1,1,1,0,0) #{NYC, NYC, ATL, ATL, ATL, NYC, NYC}
+
+# P_B
+pb <- 0.55
+advantage_multiplier <- 1.1 # Set = 1 for no advantage
+pbh <- 0.55*advantage_multiplier
+pba <- 1 - (1 - 0.55)*advantage_multiplier
+```
+
+
+***         
+# III. Analysis
+
+## 1. Analytical Approach
+
+### 1.1 With home field advantage
+
+First, we list all the possible outcomes for a series. Here are some example cases:
+
+Outcome | Game 1 | Game 2 | Game 3 | Game 4 | Game 5 | Game 6 | Game 7 | Overall Outcome |
+--------|--------|--------|--------|--------|--------|--------|--------|--------|
+ Case 1 |   W    |   W    |   W    |   W    |        |        |        |    W   |
+ Case 2 |   W    |   W    |   W    |   L    |   L   |   W    |        |     W  |
+  Case 3 |   W    |   W    |   L    |   L    |   L   |    W   |   L    |     L  |
+
+```{r, message=FALSE}
+require(dplyr)
+require(data.table)
+# Get all possible outcomes
+apo <- fread("~/Git-Projects/Probability-and-Inference-Portfolio-Shen-Yan-/data-science-5620/deliverables/assets/all-possible-world-series-outcomes.csv")
+```
+
+For each case (1 series, including 7 games), depending on the location and outcome, set the according probability:
+
+Location \\ Outcome | Win | Lose |
+-------------------|-----|------|
+     ATL        |$P_B^H$|$1-P_B^H$|
+     NYC        |$P_B^A$|$1-P_B^A$| 
+     
+An example case would be:
+
+ Outcome | Game 1 | Game 2 | Game 3 | Game 4 | Game 5 | Game 6 | Game 7 | Overall Outcome |
+--------|--------|--------|--------|--------|--------|--------|--------|--------|
+Location |   NYC  |  NYC  |  ATL  |  ATL  |  ATL  |  NYC  |  NYC  | --  |
+Example Case|   W    |   L    |   W    |   L    |   W   |    L   |   L    |     L  |
+Probability | $P_B^A$|$1-P_B^A$|$P_B^H$|$1-P_B^H$| $P_B^H$|$1-P_B^A$|$1-P_B^A$|Product of previous 7 probabilities |
+
+The probability for the overall outcome is the product of the probabilities for each game.
+
+```{r, cache = TRUE}
+# Calculate the probability of each possible outcome
+apo[, p := NA_real_] # Initialize new column in apo to store prob
+for(i in 1:nrow(apo)){
+  prob_game <- rep(1, 7)
+  for(j in 1:7){
+    p_win <- ifelse(hfi[j], pbh, pba)
+    prob_game[j] <- case_when(
+        apo[i,j,with=FALSE] == "W" ~ p_win
+      , apo[i,j,with=FALSE] == "L" ~ 1 - p_win
+      , TRUE ~ 1
+    )
+  }
+  apo[i, p := prod(prob_game)] # Data.table syntax
+}
+
+# Probability of overall World Series outcomes
+apo[, sum(p), overall_outcome]
+```
+
+The result is as shown. 
+
+Given the schedule of the World Series, Braves have a 60.42% chance of winning if we take home field advantage into consideration.
+
+
+### 1.2 Without home field advantage
+
+If we don't take home field advantage into consideration, we simply ignore the schedule and set our probabilities solely according to the outcome of a single game:
+
+ Outcome | Win | Lose |
+-------------------|-----|------|
+  ATL or NYC        |$P_B$|$1-P_B$|
+  
+Given the same sample case from previous section, the probabilities would be:
+
+ Outcome | Game 1 | Game 2 | Game 3 | Game 4 | Game 5 | Game 6 | Game 7 | Overall Outcome |
+--------|--------|--------|--------|--------|--------|--------|--------|--------|
+Location |   NYC  |  NYC  |  ATL  |  ATL  |  ATL  |  NYC  |  NYC  | --  |
+Example Case|   W    |   L    |   W    |   L    |   W   |    L   |   L    |     L  |
+Probability | $P_B$|$1-P_B$|$P_B$|$1-P_B$| $P_B$|$1-P_B$|$1-P_B$|Product of previous 7 probabilities |
+
+That is the same as setting
+
+> $P_B^H$ = $P_B^A$ = $P_B$
+
+```{r}
+# Calculate the probability of each possible outcome
+apo[, p := NA_real_] # Initialize new column in apo to store prob
+for(i in 1:nrow(apo)){
+  prob_game <- rep(1, 7)
+  for(j in 1:7){
+    p_win <- ifelse(hfi[j], pb, pb)
+    prob_game[j] <- case_when(
+        apo[i,j,with=FALSE] == "W" ~ p_win
+      , apo[i,j,with=FALSE] == "L" ~ 1 - p_win
+      , TRUE ~ 1
+    )
+  }
+  apo[i, p := prod(prob_game)] # Data.table syntax
+}
+
+# Probability of overall World Series outcomes
+apo[, sum(p), overall_outcome]
+```
+If we don't consider home field advantage, the schedule of the games doesn't matter to us anymore. The probability of Braves winning the World Series is now changed to 60.83%. 
+
+### 1.3 Difference
+```{r}
+diff_theory <- abs(0.604221 - 0.6082878)
+diff_theory
+```
+If we don't take home field advantage into consideration, the estimated probability (of Braves winning the WS) would be 0.41% higher than that when not taking into account home field advantage.
+
+
+## 2. Simulation Approach
+
+### 2.1 With home field advantage
+
+Given the game schedule, we store the winning probabilities into an array. For each game, the winning probability is either $P_B^H$ or $P_B^A$ depending on the location.
+
+```{r, cache = TRUE}
+hfi <- c(0,0,1,1,1,0,0)
+p_win <- rep(NA, 7)
+for(j in 1:7){
+    p_win[j] <- ifelse(hfi[j], pbh, pba)
+}
+```
+
+First, I simulate one case (1 series with 7 games). For each game, let the computer randomly generate a result (Win or Lose) with the winning rate to be either $P_B^H$ or $P_B^A$ depending on the location. 
+
+Then, for each case (1 series with 7 games), I count the number of winnings. If Braves wins more than or equal to 4 games, then Braves win the World Series. Otherwise, Braves loses.
+
+Finally, I repeat the process N (set to 100K here) times, and store the overall result for each case in a list. (That results in a list of 10K elements.) To calculate the estimated rate of winning, we just count the number of wins then divide it by N.
+```{r, cache= TRUE}
+N<-100000
+win_WS <- rep(NA, N)
+
+for(k in seq(win_WS)) {
+  sum_one_series <- 0
+  for (i in 1:7) {
+  sum_one_series <- sum_one_series + rbinom(1, 1, p_win[i])
+  }
+  if (sum_one_series >= 4) {
+  win_WS[k] = 1
+  } else{
+  win_WS[k] = 0
+  }
+  
+}
+p_win_with_advantage <- mean(win_WS)
+p_win_with_advantage
+```
+
+The simulation result for Braves winning the WS, with home field advantage in consideration, is 60.45%.
+
+
+### 2.2 Without home field advantage
+
+For each case (1 series with 7 games), randomly generate the number of winnings in 7 games (ranging from 0 to 7). Repeat the process N (100K) times, and store the number of winnings in a list with length N. Count the number of cases with the overall result as winning (>= 4), and divide it by N to get our probability.
+```{r, cache =  TRUE}
+N <- 100000          # number of repetition in the simulation
+outcome <- rbinom(N, 7, pb)
+p_win_no_advantage <- mean(outcome >= 4)
+p_win_no_advantage
+```
+
+If we doesn't consider home field advantage, the calculated probability of Braves winning is 60.88%. 
+### 2.3 Difference
+```{r}
+diff_simulation <- abs(p_win_with_advantage - p_win_no_advantage)
+diff_simulation
+```
+By simulation approach, if we don't take home field advantage into consideration, the estimated probability (of Braves winning the WS) would be 0.43% higher than that when taking home field advantage into account.
+
+
+
+***
+# IV. Error Analysis
+```{r}
+abs_error <- abs(diff_theory - diff_simulation)
+rel_error <- abs_error/diff_theory
+abs_error
+rel_error
+```
+
+Let's see how accurate our simulation result is. The absolute error is 0.02%, quite small. The relative error is 4.50%, larger comparing to absolute error. The sudden increase in relative error might be due to the small amount of the analytical result (which is only 0.41% and is used as a denominator here).
+
+If you want to know more about error analysis, there's another post on it
+
+***
+# V. Uncertainties and Limitations
+  Many assumptions we made and simulation process we used can introduce bias and inaccuracy. Here are 2 of many:
+  
+* First, we are not sure if home field advantage does exist. Even if it does exist, the simple model (with multiplier) we used here might not be a model accurate enough.
+* Second, since we are using a simulation with 100K times, the result varies a lot. Especially given the small nature of our differences in probabilites (~0.4%), the variance in relative errors can be very large.
