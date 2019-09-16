@@ -238,8 +238,6 @@ rel_error
 
 Let's see how accurate our simulation result is. The absolute error is 0.02%, quite small. The relative error is 4.50%, larger comparing to absolute error. The sudden increase in relative error might be due to the small amount of the analytical result (which is only 0.41% and is used as a denominator here).
 
-If you want to know more about error analysis, there's another post on it
-
 ***
 # V. Uncertainties and Limitations
   Many assumptions we made and simulation process we used can introduce bias and inaccuracy. Here are 2 of many:
