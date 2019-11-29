@@ -1,7 +1,16 @@
 ---
 title: "Simulation of Martingale Strategy on Roulette"
-output:
-  html_notebook: default
+author: "Yan Shen"
+date: 09/08/2019
+output: 
+  html_document:
+    code_folding: hide
+    theme: journal
+    toc: yes
+    toc_depth: 5
+    toc_float: true
+editor_options: 
+  chunk_output_type: inline
 ---
 
 # 1. Introduction to Roulette Game
@@ -35,7 +44,7 @@ W         |Winnings threshold for stopping
 L         |Time threshold for stopping
 M         |Casino’s maximum wager
 
-```{r,cache=TRUE}
+```{r}
 #needed to use the pipe '%>%'
 library(magrittr)
 
@@ -83,7 +92,7 @@ one_play <- function(state){
   1. the player has W dollars
   2. the player goes bankrupt
   3. the player completes L wagers (or plays)
-```{r,cache=TRUE}
+```{r}
 #' Stopping rule
 #'
 #' Takes the state list and determines if the gambler has to stop
@@ -152,7 +161,9 @@ walk_out_money <- rep(NA, 10000)
 for(j in seq_along(walk_out_money)){
   walk_out_money[j] <- one_series(B = 200, W = 300, L = 1000, M = 100) %>% get_last
 }
+```
 
+```{r}
 # Walk out money distribution
 hist(walk_out_money, breaks = 100)
 ```
@@ -167,7 +178,7 @@ mean(walk_out_money - 200)
 ```
   About 50% of the time, the player actually has a earning, and 50% chance is that the player has a loss. Since half of the time, the player wins $100 ($300 walk out money - $200 starting budget), and half of the time, the player loses $200 (all the starting budget), the average earning is around -$45.
 
-## 3. More analysis
+# 3. More analysis
 
 ## 3.1 How does the player's earning/loss evolve over his course of playing?
   We now see how one player's earning/loss evolve. Take a look of the budet change for the first 5 wagers:
@@ -194,7 +205,7 @@ Play|Wager|Outcome|Earnings
   5 |  1  | Black |   1
 
   Then we want to the change of earning/loss for the whole process, from the point the player starts to the time one of the stopping conditions is met.
-```{r,cache=TRUE}
+```{r}
 # Make a line chart
   set.seed(8)
   plot (time_of_play, earning, type = "o", main = "How the Earning/Loss of a Single Player Evolve over Time", xlab = "Number of Play", ylab = "Earning")
@@ -205,7 +216,7 @@ Play|Wager|Outcome|Earnings
 ## 3.2 How does a change in parameter impact average earnings?
 
   For convenience, I wrote a function to generate one simulation, which includes 1000 series samples, and output the average earning for those samples.
-```{r,cache=TRUE}
+```{r}
 # how changing a parameter of the simulation (see table below) does or does not have an impact on average earnings.
 #' @param B number, the starting budget
 #' @param W number, the budget threshold for successfully stoping
@@ -228,8 +239,8 @@ one_simulation <- function(
   return(mean(walk_out_money - 200))
 }
 ```
-  Then, we want to take a look at the way earnings change when parameter B, the starting budget, increases from $100 to $1,500.
-```{r,cache=TRUE}
+  Then, we want to take a look at the way earnings change when parameter B, the starting budget, increases from `$`100 to `$`1,500.
+```{r}
 # The variation time of one variable
 time_of_variation = 15
 set.seed(150)
@@ -268,7 +279,7 @@ for(j in seq_along(walk_out_money)){
 mean(number_of_plays)
 ```
   In average, a player would play 200 times before one of the stopping conditions are satisfied and thus ends the game. The distribution is as follows:
-```{r,cache=TRUE}
+```{r}
 # Number of plays distribution
 hist(number_of_plays, breaks = 100)
 ```
