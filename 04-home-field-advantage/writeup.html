@@ -634,13 +634,6 @@ apo[, sum(p), overall_outcome]</code></pre>
 ## 2:               L 0.3917122</code></pre>
 <p>If we don’t consider home field advantage, the schedule of the games doesn’t matter to us anymore. The probability of Braves winning the World Series is now changed to 60.83%.</p>
 </div>
-<div id="difference" class="section level3">
-<h3>1.3 Difference</h3>
-<pre class="r"><code>diff_theory &lt;- abs(0.604221 - 0.6082878)
-diff_theory</code></pre>
-<pre><code>## [1] 0.0040668</code></pre>
-<p>If we don’t take home field advantage into consideration, the estimated probability (of Braves winning the WS) would be 0.41% higher than that when not taking into account home field advantage.</p>
-</div>
 </div>
 <div id="simulation-approach" class="section level2">
 <h2>2. Simulation Approach</h2>
@@ -655,7 +648,8 @@ for(j in 1:7){
 <p>First, I simulate one case (1 series with 7 games). For each game, let the computer randomly generate a result (Win or Lose) with the winning rate to be either <span class="math inline">\(P_B^H\)</span> or <span class="math inline">\(P_B^A\)</span> depending on the location.</p>
 <p>Then, for each case (1 series with 7 games), I count the number of winnings. If Braves wins more than or equal to 4 games, then Braves win the World Series. Otherwise, Braves loses.</p>
 <p>Finally, I repeat the process N (set to 100K here) times, and store the overall result for each case in a list. (That results in a list of 10K elements.) To calculate the estimated rate of winning, we just count the number of wins then divide it by N.</p>
-<pre class="r"><code>N&lt;-100000
+<pre class="r"><code>set.seed(8)
+N&lt;-100000
 win_WS &lt;- rep(NA, N)
 
 for(k in seq(win_WS)) {
@@ -672,36 +666,48 @@ for(k in seq(win_WS)) {
 }
 p_win_with_advantage &lt;- mean(win_WS)
 p_win_with_advantage</code></pre>
-<pre><code>## [1] 0.6041</code></pre>
-<p>The simulation result for Braves winning the WS, with home field advantage in consideration, is 60.45%.</p>
+<pre><code>## [1] 0.6027</code></pre>
+<p>The simulation result for Braves winning the WS, with home field advantage in consideration, is 60.27%.</p>
 </div>
 <div id="without-home-field-advantage-1" class="section level3">
 <h3>2.2 Without home field advantage</h3>
 <p>For each case (1 series with 7 games), randomly generate the number of winnings in 7 games (ranging from 0 to 7). Repeat the process N (100K) times, and store the number of winnings in a list with length N. Count the number of cases with the overall result as winning (&gt;= 4), and divide it by N to get our probability.</p>
-<pre class="r"><code>N &lt;- 100000          # number of repetition in the simulation
+<pre class="r"><code>set.seed(8)
+N &lt;- 100000          # number of repetition in the simulation
 outcome &lt;- rbinom(N, 7, pb)
 p_win_no_advantage &lt;- mean(outcome &gt;= 4)
 p_win_no_advantage</code></pre>
-<pre><code>## [1] 0.60808</code></pre>
-<p>If we doesn’t consider home field advantage, the calculated probability of Braves winning is 60.88%. ### 2.3 Difference</p>
-<pre class="r"><code>diff_simulation &lt;- abs(p_win_with_advantage - p_win_no_advantage)
-diff_simulation</code></pre>
-<pre><code>## [1] 0.00398</code></pre>
-<p>By simulation approach, if we don’t take home field advantage into consideration, the estimated probability (of Braves winning the WS) would be 0.43% higher than that when taking home field advantage into account.</p>
+<pre><code>## [1] 0.60879</code></pre>
+<p>If we doesn’t consider home field advantage, the calculated probability of Braves winning is 60.88%.</p>
 <hr />
 </div>
 </div>
 </div>
 <div id="iv.-error-analysis" class="section level1">
 <h1>IV. Error Analysis</h1>
-<pre class="r"><code>abs_error &lt;- abs(diff_theory - diff_simulation)
-rel_error &lt;- abs_error/diff_theory
-abs_error</code></pre>
-<pre><code>## [1] 8.68e-05</code></pre>
-<pre class="r"><code>rel_error</code></pre>
-<pre><code>## [1] 0.02134356</code></pre>
-<p>Let’s see how accurate our simulation result is. The absolute error is 0.02%, quite small. The relative error is 4.50%, larger comparing to absolute error. The sudden increase in relative error might be due to the small amount of the analytical result (which is only 0.41% and is used as a denominator here).</p>
+<p>We calculate the absolute error and relative error between analytical approach and simulation approach for both cases.</p>
+<div id="with-home-field-advantage-2" class="section level2">
+<h2>1. With home field advantage</h2>
+<pre class="r"><code>abs_error1&lt;- abs(0.604221 - p_win_with_advantage)
+abs_error1</code></pre>
+<pre><code>## [1] 0.001521</code></pre>
+<pre class="r"><code>rel_error1 &lt;- abs_error1/0.604221
+rel_error1</code></pre>
+<pre><code>## [1] 0.002517291</code></pre>
+<p>When taking into consideration home field advantage, the absolute error between analytical and simulation approach is 0.15% and the relative error is 0.25%.</p>
+</div>
+<div id="without-home-field-advantage-2" class="section level2">
+<h2>2. Without home field advantage</h2>
+<pre class="r"><code>abs_error2 &lt;- abs(0.6082878 - p_win_no_advantage)
+abs_error2</code></pre>
+<pre><code>## [1] 0.0005022</code></pre>
+<pre class="r"><code>rel_error2 &lt;- abs_error1/0.6082878
+rel_error2</code></pre>
+<pre><code>## [1] 0.002500461</code></pre>
+<p>When we don’t consider home field advantage, the absolute error between analytical and simulation approach is 0.05% and the relative error is 0.25%.</p>
+<p>We can see that when we don’t consider home field advantage, the absolute error varies. However, the relative error for both approaches are almost the same, 0.25%.</p>
 <hr />
+</div>
 </div>
 <div id="v.-uncertainties-and-limitations" class="section level1">
 <h1>V. Uncertainties and Limitations</h1>

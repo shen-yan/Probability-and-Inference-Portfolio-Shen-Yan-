@@ -91,7 +91,7 @@ Probability | $P_B^A$|$1-P_B^A$|$P_B^H$|$1-P_B^H$| $P_B^H$|$1-P_B^A$|$1-P_B^A$|P
 
 The probability for the overall outcome is the product of the probabilities for each game.
 
-```{r, cache = TRUE}
+```{r}
 # Calculate the probability of each possible outcome
 apo[, p := NA_real_] # Initialize new column in apo to store prob
 for(i in 1:nrow(apo)){
@@ -157,21 +157,13 @@ apo[, sum(p), overall_outcome]
 ```
 If we don't consider home field advantage, the schedule of the games doesn't matter to us anymore. The probability of Braves winning the World Series is now changed to 60.83%. 
 
-### 1.3 Difference
-```{r}
-diff_theory <- abs(0.604221 - 0.6082878)
-diff_theory
-```
-If we don't take home field advantage into consideration, the estimated probability (of Braves winning the WS) would be 0.41% higher than that when not taking into account home field advantage.
-
-
 ## 2. Simulation Approach
 
 ### 2.1 With home field advantage
 
 Given the game schedule, we store the winning probabilities into an array. For each game, the winning probability is either $P_B^H$ or $P_B^A$ depending on the location.
 
-```{r, cache = TRUE}
+```{r}
 hfi <- c(0,0,1,1,1,0,0)
 p_win <- rep(NA, 7)
 for(j in 1:7){
@@ -184,7 +176,8 @@ First, I simulate one case (1 series with 7 games). For each game, let the compu
 Then, for each case (1 series with 7 games), I count the number of winnings. If Braves wins more than or equal to 4 games, then Braves win the World Series. Otherwise, Braves loses.
 
 Finally, I repeat the process N (set to 100K here) times, and store the overall result for each case in a list. (That results in a list of 10K elements.) To calculate the estimated rate of winning, we just count the number of wins then divide it by N.
-```{r, cache= TRUE}
+```{r}
+set.seed(8)
 N<-100000
 win_WS <- rep(NA, N)
 
@@ -204,13 +197,14 @@ p_win_with_advantage <- mean(win_WS)
 p_win_with_advantage
 ```
 
-The simulation result for Braves winning the WS, with home field advantage in consideration, is 60.45%.
+The simulation result for Braves winning the WS, with home field advantage in consideration, is 60.27%.
 
 
 ### 2.2 Without home field advantage
 
 For each case (1 series with 7 games), randomly generate the number of winnings in 7 games (ranging from 0 to 7). Repeat the process N (100K) times, and store the number of winnings in a list with length N. Count the number of cases with the overall result as winning (>= 4), and divide it by N to get our probability.
-```{r, cache =  TRUE}
+```{r}
+set.seed(8)
 N <- 100000          # number of repetition in the simulation
 outcome <- rbinom(N, 7, pb)
 p_win_no_advantage <- mean(outcome >= 4)
@@ -218,25 +212,35 @@ p_win_no_advantage
 ```
 
 If we doesn't consider home field advantage, the calculated probability of Braves winning is 60.88%. 
-### 2.3 Difference
-```{r}
-diff_simulation <- abs(p_win_with_advantage - p_win_no_advantage)
-diff_simulation
-```
-By simulation approach, if we don't take home field advantage into consideration, the estimated probability (of Braves winning the WS) would be 0.43% higher than that when taking home field advantage into account.
-
-
 
 ***
 # IV. Error Analysis
+
+  We calculate the absolute error and relative error between analytical approach and simulation approach for both cases. 
+  
+## 1. With home field advantage
+
 ```{r}
-abs_error <- abs(diff_theory - diff_simulation)
-rel_error <- abs_error/diff_theory
-abs_error
-rel_error
+abs_error1<- abs(0.604221 - p_win_with_advantage)
+abs_error1
+rel_error1 <- abs_error1/0.604221
+rel_error1
 ```
 
-Let's see how accurate our simulation result is. The absolute error is 0.02%, quite small. The relative error is 4.50%, larger comparing to absolute error. The sudden increase in relative error might be due to the small amount of the analytical result (which is only 0.41% and is used as a denominator here).
+When taking into consideration home field advantage, the absolute error between analytical and simulation approach is 0.15% and the relative error is 0.25%. 
+
+## 2. Without home field advantage
+```{r}
+abs_error2 <- abs(0.6082878 - p_win_no_advantage)
+abs_error2
+rel_error2 <- abs_error1/0.6082878
+rel_error2
+```
+
+When we don't consider home field advantage, the absolute error between analytical and simulation approach is 0.05% and the relative error is 0.25%.
+
+
+We can see that when we don't consider home field advantage, the absolute error varies. However, the relative error for both approaches are almost the same, 0.25%.
 
 ***
 # V. Uncertainties and Limitations
