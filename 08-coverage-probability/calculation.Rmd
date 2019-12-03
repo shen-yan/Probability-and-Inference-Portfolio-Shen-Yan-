@@ -1,0 +1,90 @@
+---
+title: "calculation"
+output: html_notebook
+editor_options: 
+  chunk_output_type: inline
+---
+
+Step1: Generate a single sample from a standard normal distribution of size N = 201. Explain to the reader how you use MLE to estimate the distribution.
+
+```{r}
+require(stats4)
+# Generate sample
+N <- 201
+generate_data <- function(N){
+  s <- rnorm(N, mean = 0, sd = 1)
+  
+  # estimate distribution with MLE
+  nLL <- function(mean, sd){
+    fs <- dnorm(x = s, mean = mean, sd = sd, log = TRUE)
+    -sum(fs)
+  }
+  
+  fit <- mle(nLL, start = list(mean = 1, sd = 0), method = "L-BFGS-B", lower = c(0, 0.01))
+  
+  coef(fit)
+}
+```
+
+
+Step2: Show the reader how you approximate the sampling distribution of the median, conditional on the estimate of the distribution in the previous step.
+
+```{r}
+# Approximate the sampling distribution of median
+generate_distribution <- function(coef, R = 5000){
+  out <- rep(NA, R)
+  for(i in 1:R){
+    b <- rnorm(N, mean = coef[1], sd = coef[2])
+    out[i] <- median(b)
+  }
+  out
+}
+# hist(out, freq = FALSE, xlab = "sample median")
+```
+
+
+Step3: Describe how you calculate a 95% confidence interval from the approximated sampling distribution.
+
+```{r}
+alpha <- 0.05
+generate_ci <- function(data, alpha = 0.05){
+  quantile(data, c(alpha/2, 1 - alpha/2))
+}
+```
+
+
+Step4: Explain the concept of coverage probability. Explain your code for calculating the coverage probability.
+
+```{r}
+capture_median <- function(ci){
+  1*(ci[[1]] < 0 & 0 < ci[[2]])
+}
+```
+
+
+Step5: Perform the simulation and report the results.
+
+```{r}
+M <- 10000
+captures <- rep(NA, M)
+
+#require(foreach)
+#require(doParallel)
+
+cores_2_use <- detectCores(TRUE) -1
+cl <- makeCluster(cores_2_use)
+clusterSetRNGStream(cl, 2344)
+registerDoParallel(cl)
+
+captures <-  foreach(i = 1:M, .combine = c, .packages = c('dplyr', 'stats4')) %dopar% {
+  captures[i] <- generate_data(201) %>% generate_distribution %>% generate_ci %>% capture_median
+}
+
+stopCluster(cl)
+
+mean(captures)
+```
+
+
+Step6: Describe how you might change the simulation to learn more about the operating characteristics of your chosen method for constructing the 95% confidence interval.
+

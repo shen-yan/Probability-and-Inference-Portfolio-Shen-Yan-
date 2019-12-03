@@ -1,0 +1,12 @@
+base
+methods
+datasets
+utils
+grDevices
+graphics
+stats
+stats4
+foreach
+iterators
+parallel
+doParallel
