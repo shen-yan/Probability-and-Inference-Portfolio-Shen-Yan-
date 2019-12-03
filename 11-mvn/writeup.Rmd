@@ -1,0 +1,97 @@
+---
+title: "Simulation study: Power and sample size calculations correlational studies"
+author: "Yan Shen"
+date: 12/02/2019
+output: 
+  html_document:
+    code_folding: hide
+    theme: journal
+    toc: yes
+    toc_depth: 5
+    toc_float: true
+editor_options: 
+  chunk_output_type: inline
+---
+
+***
+# I. Introduction
+
+  A common research objective is to demonstrate that a strong correlation exist between two measurements, so we can use the more convenient measurement to infer the other measurement. 
+  
+  In this blog post, assume that we want to prove that two measurements A and B are highly associated when the correlation is greater than 0.8. 
+  
+  We investigate relationship between __power__ (the probability that the null Hypothesis is correctly rejected), __true population correlation__, and __sample size N__.
+  
+***
+# II. Setup
+
+  Assume that the underlying distribution is two-variable normal distribution. 
+  
+  We let the __sample size be 25, 50, 75, 100__; let the __population range from 0.8 to 0.96__, and we run the simulation __5000__ times for each scenario. 
+  For each case, we generate a one-sided confidence interval and check if it's larger than our null correlation value (0.8). If true, we say this is a "success". Then we determine the power by computing the averge number of successes. 
+  
+***
+# III. Calculation
+
+  First, we set the variables (sample size and population size), and the constant parameters.
+```{r}
+set.seed(20394)
+suppressPackageStartupMessages(require(mvtnorm))
+N <- seq(25, 100, 25)
+rho <- seq(0.8, 0.96, 0.02)
+null_correlation <- 0.8
+R <- 5000
+```
+
+  Then, we write a nested loop to compute the power for each sample size N, correlation \rho. 
+```{r}
+power_curve <- function(N, rho){
+  n <- length(N)
+  m <- length(rho)
+  
+  curves <- array(rep(NA, n*m), c(n, m))
+  for (k in 1:n){
+    for (j in 1:m){
+      # covariance matrix and means
+      sigma <- array(c(1, rho[j], rho[j], 1), c(2, 2))
+      mu <- c(0,0)
+      
+      detect <- rep(NA, R)
+      for(i in 1:R){
+        data <- rmvnorm(N[k], mean = mu, sigma = sigma)
+        results <- cor.test(x = data[, 1], y = data[,2], alternative = "greater")
+        detect[i] <- results$conf.int[1] > null_correlation
+      }
+      curves[k, j] <- mean(detect)
+    }
+  }
+  curves
+}
+```
+
+```{r}
+result <- power_curve(N, rho)
+```
+
+  Plot the result: 
+```{r}
+colors <- c("black", "red", "green", "blue")
+plot(rho, result[1,], type = "l", col = colors[1], 
+     xaxp = c(0.80, 0.96, 8), yaxp = c(0, 1, 5),
+     xlab = "Correlation", ylab = "Power")
+for(i in c(2,3,4)){
+  lines(rho, result[i,], col = colors[i])
+}
+legend("bottomright", legend= paste("N = ", N),
+       col=colors, lty = 1, cex=0.8)
+
+```
+
+***
+# IV. Result and Intepretation 
+
+  For each sample size N, the larger the true underlying population correlation is, the bigger the power is. In other words, the more the two measurements are correlated in reality, the bigger chance we can correctly conclude that they are related. 
+  
+  For each true correlation, the larger the sample size result in larger power. This is because larger population result in tighter confidence interval, so it's more likely to capture the true underlying correlation (which is > 0.8 in our assumption).
+  
+  Additional, note that when correlation \rho = 0.8, all the lines intersect, at \alpha, because if \rho = 0.8, power (the chance of correctly rejecting null hypothesis) is equal to the \alpha (Type I Error, the chance of falsely rejecting null hypothesis when it's true).

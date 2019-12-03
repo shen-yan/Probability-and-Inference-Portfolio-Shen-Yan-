@@ -1,0 +1,59 @@
+---
+title: "calculation"
+output: html_notebook
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{r}
+set.seed(20394)
+suppressPackageStartupMessages(require(mvtnorm))
+N <- seq(25, 100, 25)
+rho <- seq(0.8, 0.96, 0.02)
+null_correlation <- 0.8
+R <- 5000
+```
+
+```{r}
+power_curve <- function(N, rho){
+  n <- length(N)
+  m <- length(rho)
+  
+  curves <- array(rep(NA, n*m), c(n, m))
+  for (k in 1:n){
+    for (j in 1:m){
+      # covariance matrix and means
+      sigma <- array(c(1, rho[j], rho[j], 1), c(2, 2))
+      mu <- c(0,0)
+      
+      detect <- rep(NA, R)
+      for(i in 1:R){
+        data <- rmvnorm(N[k], mean = mu, sigma = sigma)
+        results <- cor.test(x = data[, 1], y = data[,2], alternative = "greater")
+        detect[i] <- results$conf.int[1] > null_correlation
+      }
+      curves[k, j] <- mean(detect)
+    }
+  }
+  curves
+}
+```
+
+```{r}
+result <- power_curve(N, rho)
+```
+
+```{r}
+colors <- c("black", "red", "green", "blue")
+plot(rho, result[1,], type = "l", col = colors[1], 
+     xaxp = c(0.80, 0.96, 8), yaxp = c(0, 1, 5),
+     xlab = "Correlation", ylab = "Power")
+for(i in c(2,3,4)){
+  lines(rho, result[i,], col = colors[i])
+}
+legend("bottomright", legend= paste("N = ", N),
+       col=colors, lty = 1, cex=0.8)
+
+```
+
+
