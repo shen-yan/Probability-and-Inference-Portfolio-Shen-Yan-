@@ -1,0 +1,5 @@
+base
+magrittr
+foreach
+iterators
+doParallel
