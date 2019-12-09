@@ -371,13 +371,14 @@ curve(dgamma(x, shape = shape_hat, scale = scale_hat), xlim = c(130, 200),
 adult_scr <- adult %>% filter(!is.na(SCr))
 adult_scr <- adult_scr$SCr
 
-epdfstar <- function(t, data, smooth){
-  outer(t, data, function(a, b){dnorm(a, b, smooth)}) %>% rowMeans()
+ecdfstar <- function(t, data, smooth){
+  outer(t, data, function(a, b){pnorm(a, b, smooth)}) %>% rowMeans
 }
 
-tbl <- data.frame(x = seq(0, 10, by = 0.01))
+tbl <- data.frame(
+  x = seq(min(adult_scr)-2*sd(adult_scr),max(adult_scr)+2*sd(adult_scr),by=0.01))
 
-tbl$p <- epdfstar(tbl$x, adult_scr, density(adult_scr)$bw)
+tbl$p <- ecdfstar(tbl$x, adult_scr, density(adult_scr)$bw)
 tbl <- tbl[!duplicated(tbl$p),]
 
 qscr <- function(ps, tbl){
@@ -390,7 +391,8 @@ Y <- qscr(U, tbl)
 ```
 
 ```{r}
-plot(ecdf(Y), xlab = "creatinine", ylab = "density", main = "Kernel Density Estimation")
+hist(Y, breaks = 50,
+     xlab = "creatinine", ylab = "density", main = "Kernel Density Estimation")
 ```
 
 
