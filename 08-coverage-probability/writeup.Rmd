@@ -1,7 +1,7 @@
 ---
 title: "Coverage probability"
 author: "Yan Shen"
-date: 12/02/2019
+date: 10/27/2019
 output: 
   html_document:
     code_folding: hide
@@ -12,6 +12,9 @@ output:
 editor_options: 
   chunk_output_type: inline
 ---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(message = FALSE)
+```
 
 ***
 # I. Introduction
@@ -45,7 +48,7 @@ editor_options:
 
 Step 1: Generate a single sample from a standard normal distribution of size $N = 201$. Then generate a negative log-likelihood function (NLL, which is the function of negative log of density at each point). Then we use NLL as an input of Maximum Likely Estimation function (MLE, which essentially compute the density at each points and return the one maximizes the likelyhood). So the MLE function will tell us the estimated parameters (mean and standard deviation for normal distribution) that best estimates the underlying distribution.
 
-```{r}
+```{r message=FALSE}
 require(stats4)
 # Generate sample
 N <- 201

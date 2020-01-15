@@ -1,7 +1,7 @@
 ---
 title: "Which quantiles of a continuous distribution can one estimate with more precision?"
 author: "Yan Shen"
-date: 09/22/2019
+date: 10/06/2019
 output: 
   html_document:
     code_folding: hide

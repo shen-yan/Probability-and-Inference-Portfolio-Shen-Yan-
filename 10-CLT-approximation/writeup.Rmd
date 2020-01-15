@@ -1,7 +1,7 @@
 ---
-title: "Distribution of Order Statistics"
+title: "How accurate can Central Limit Theorem approximate?"
 author: "Yan Shen"
-date: 11/22/2019
+date: 11/10/2019
 output: 
   html_document:
     code_folding: hide
@@ -12,6 +12,9 @@ output:
 editor_options: 
   chunk_output_type: inline
 ---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(message = FALSE)
+```
 
 ***
 # I. Introduction
@@ -51,7 +54,7 @@ N <- c(5, 10, 20, 40)
 
 For each QQ-plot, we first calculate the distribution implied by Central Limite Theorem for Skew-Normal distribution. 
 
-> $sample_mean = \xi + \omega\delta\sqrt((\frac{2}{\pi}))$
+> $sample\ mean = \xi + \omega\delta\sqrt((\frac{2}{\pi}))$
 >
 > where $\delta = \frac{\alpha}{sqrt(1 + \alpha^2)}$ 
 > and $\xi = location, \omega = scale, \alpha = shape$

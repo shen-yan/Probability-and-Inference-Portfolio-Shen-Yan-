@@ -1,7 +1,7 @@
 ---
 title: "How often does the better team win the World Series?"
 author: "Yan Shen"
-date: 09/08/2019
+date: 09/22/2019
 output: 
   html_document:
     code_folding: hide
@@ -14,7 +14,7 @@ editor_options:
 ---
 
 ***
-# Setup
+# I. Setup
 <center>
 ![](Braves_vs_Yankees.jpg){width=750px}
 </center>
@@ -29,9 +29,9 @@ editor_options:
   $P_y$ = 1 - $P_b$ | the probability that the Yankees win __a single game__
 
 ***
-# Can Braves win the series ...
+# II. Can Braves win the series ...
 
-## When $P_b$ = 0.55?
+## 1. When $P_b$ = 0.55?
 Let's assume $P_b$ = 0.55, and calculate probability that the Braves win the World Series.
 
 ```{r}
@@ -66,7 +66,7 @@ ggplot(df_Bwin, aes(x = P_b, y = P_Bwins_x)) +
 
 As $P_b$ becomes larger, the probability that Braves will ultimately win the World Series becomes closer and closer to 1, which makes sense as the probability of winning 4 games increases with the probability of winning a single game. When $P_b$ is larger than 0.9, it's almost for sure that Braves would win the series!
 
-## When it's not best-of-7?
+## 2. When it's not best-of-7?
 
 What if MLB wants to change the winning rule to best-of-x? For example, if it's best-of-9, then Braves would have to win 5 games.
 
@@ -116,7 +116,7 @@ As Braves' probability of winning a single game get's larger, the series length 
 The decreasing slope is very steep. When $P_b$ = 0.7, Braves only need 5 games in the series; $P_b$ = 0.75, they need 3. If $P_b$ is larger than or equal to 0.8, then for a single game, they have at least 80% chance of winning (one game and that's all). They can win the World Series in just one game!
 
 ***
-# Win at home or on road?
+# III. Win at home or on road?
 
 Since now, we haven't considered the difference of probability that Braves win a single game at home and on road. __Suppose that 50% of the games are at home, with $P_b$ = 0.55 and the other times, the games are on road, with $P_b$ = 0.45__.
 
@@ -163,5 +163,5 @@ bayes(p_a1, p_a2, 0.5)
 $P$($P_b$ = 0.55|Braves win World Series in 7 games) = __0.55__
 
 ***
-# Uncertainties
+# IV. Uncertainties
   In this whole post, we assumed that $P_b$ is constant, this is far from the truth. In reality, anything from the weather to the performance of a single player can have a unpredictable effect on $P_b$. Also, $P_b$ may change over time, maybe changing with every game played. All of that changes were not included, here is just a really simple prediction model.

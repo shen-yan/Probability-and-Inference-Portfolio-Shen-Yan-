@@ -1,5 +1,5 @@
 ---
-title: "Simulation study: Power and sample size calculations correlational studies"
+title: "Simulation study: Correlation between power and sample size"
 author: "Yan Shen"
 date: 12/02/2019
 output: 
